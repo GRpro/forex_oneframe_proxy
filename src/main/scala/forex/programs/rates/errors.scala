@@ -1,15 +1,18 @@
 package forex.programs.rates
 
 import forex.services.rates.errors.{ Error => RatesServiceError }
-
+import forex.services.rate.errors.{ Error => RateServiceError }
 object errors {
 
-  sealed trait Error extends Exception
-  object Error {
-    final case class RateLookupFailed(msg: String) extends Error
-  }
+  final case class Error(msg: String) extends Exception(msg)
 
-  def toProgramError(error: RatesServiceError): Error = error match {
-    case RatesServiceError.OneFrameLookupFailed(msg) => Error.RateLookupFailed(msg)
+  def toProgramError(error: RateServiceError): Error = error match {
+    case RateServiceError.RateLookupFailed(msg) => Error(msg)
+    case RateServiceError.RateLookupFailedCaused(cause) =>
+      cause match {
+        case RatesServiceError.OneFrameLookupFailed(_) =>
+//          println(msg)
+          Error("failed to parse")
+      }
   }
 }

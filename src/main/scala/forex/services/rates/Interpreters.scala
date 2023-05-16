@@ -1,8 +1,10 @@
 package forex.services.rates
 
-import cats.Applicative
+import cats.effect.ConcurrentEffect
+import forex.config.OneFrameClientConfig
 import interpreters._
 
 object Interpreters {
-  def dummy[F[_]: Applicative]: Algebra[F] = new OneFrameDummy[F]()
+  def live[F[_]: ConcurrentEffect](oneFrameClientConfig: OneFrameClientConfig): Algebra[F] =
+    new OneFrame[F](oneFrameClientConfig)
 }

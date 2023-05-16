@@ -4,21 +4,21 @@ import cats.Functor
 import cats.data.EitherT
 import errors._
 import forex.domain._
-import forex.services.RatesService
+import forex.services.RateService
 
 class Program[F[_]: Functor](
-    ratesService: RatesService[F]
+    rateService: RateService[F]
 ) extends Algebra[F] {
 
   override def get(request: Protocol.GetRatesRequest): F[Error Either Rate] =
-    EitherT(ratesService.get(Rate.Pair(request.from, request.to))).leftMap(toProgramError(_)).value
+    EitherT(rateService.get(Rate.Pair(request.from, request.to))).leftMap(toProgramError).value
 
 }
 
 object Program {
 
   def apply[F[_]: Functor](
-      ratesService: RatesService[F]
-  ): Algebra[F] = new Program[F](ratesService)
+      rateService: RateService[F]
+  ): Algebra[F] = new Program[F](rateService)
 
 }
