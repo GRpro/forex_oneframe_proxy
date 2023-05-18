@@ -2,10 +2,22 @@
 This setup consists of 2 services. External service `OneFrame` which has a limitation for number of requests per token. Internal service `Forex` which acts as a proxy for OneFrame API and bypasses SLA with caching.
 This repository is an implementation of `Forex` service. It's API provides an HTTP endpoint providing currency exchange rates for a given currency pair.
 
-## Links
+## Requirements and limitations
 
-1. [Requirements](https://github.com/paidy/interview/blob/master/Forex.md)
-2. [OneFrame image](https://hub.docker.com/r/paidyinc/one-frame)
+- [Requirements](https://github.com/paidy/interview/blob/master/Forex.md)
+- [OneFrame image](https://hub.docker.com/r/paidyinc/one-frame)
+
+There are 3 functional requirements:
+1. The service returns an exchange rate when provided with 2 supported currencies
+   - Assumed the following list of currencies is supported `AUD, CAD, CHF, EUR, GBP, NZD, JPY, SGD, USD`
+
+2. The service should support at least 10,000 successful requests per day with 1 API token
+   - The service supports any number of requests per day for a single configured `OneFrame` API token by utilizing a cache
+
+3. The rate should not be older than 5 minutes
+   - `OneFrame` supports only 1000 requests per day meaning no more than 1000 / 24 =~ 42 requests per hour, which means a delay of at least 3600 / 42 ~= 86 seconds between requests on average
+      To support this requirement I need to update the cache every 300 seconds which is acceptable by the API SLA.
+      The setting `app.cache.update-interval` in `application.conf` should be in range `[86, 300] seconds`
 
 ## Service setup and execute request
 

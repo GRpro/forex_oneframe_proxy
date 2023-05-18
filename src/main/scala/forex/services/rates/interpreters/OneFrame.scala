@@ -11,13 +11,14 @@ import org.http4s.client.Client
 import org.http4s.client.blaze.BlazeClientBuilder
 import cats.effect._
 import cats.implicits._
+import com.typesafe.scalalogging.LazyLogging
 import forex.services.rates.errors.Error.OneFrameLookupFailed
 import org.http4s._
 import org.http4s.Method.GET
 
 import scala.concurrent.ExecutionContext.Implicits.global
 class OneFrame[F[_]: ConcurrentEffect](oneFrameClientConfig: OneFrameClientConfig)
-    extends Algebra[F] {
+    extends Algebra[F] with LazyLogging {
 
   private def queryParameters(pairs: List[Rate.Pair]): String =
     pairs
@@ -35,9 +36,10 @@ class OneFrame[F[_]: ConcurrentEffect](oneFrameClientConfig: OneFrameClientConfi
           headers = Headers.of(Header("token", oneFrameClientConfig.token))
         )
       )
+      // TODO make more succinct and beautiful error handling
       .recover {
         case e: InvalidMessageBodyFailure =>
-          println(f"Failed to parse OneFrame response ${e.cause}")
+          logger.error(f"Failed to parse OneFrame response ${e.cause}", e)
           throw e
       }
       .map(_.asRight[Error])
