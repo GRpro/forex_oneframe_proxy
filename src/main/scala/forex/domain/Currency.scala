@@ -7,6 +7,9 @@ import forex.domain.Rate.Pair
 sealed trait Currency
 
 object Currency {
+
+  // TODO support more currencies from https://www.xe.com/iso4217.php#section2.
+  //      We can use dataset from https://datahub.io/core/currency-codes
   case object AUD extends Currency
   case object CAD extends Currency
   case object CHF extends Currency

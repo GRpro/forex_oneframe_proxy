@@ -28,6 +28,7 @@ class BackgroundWorker[F[_]: Concurrent: Timer](rates: RatesAlgebra[F],
 
   private[this] def tryUpdateCache: F[Unit] = {
     logger.info("Attempt to update cache")
+    // TODO if the list of currencies grow, update in multiple requests
     rates
       .get(Currency.allExchangePairs)
       .flatMap {

@@ -9,7 +9,8 @@ This repository is an implementation of `Forex` service. It's API provides an HT
 
 There are 3 functional requirements:
 1. The service returns an exchange rate when provided with 2 supported currencies
-   - Assumed the following list of currencies is supported `AUD, CAD, CHF, EUR, GBP, NZD, JPY, SGD, USD`.
+   - Assumed the following list of currencies is supported `AUD, CAD, CHF, EUR, GBP, NZD, JPY, SGD, USD`. 
+     Though, this list can be easily extended keeping the following in mind. Fetching a cartesian product of pairs can be too much for a single request, if that's the case, we might need to group them and run request per group for each iteration (either in a single fiber or multiple schedulers with a randomized scheduled times)
 
 2. The service should support at least 10,000 successful requests per day with 1 API token
    - The service supports any number of requests per day for a single configured `OneFrame` API token by utilizing a cache.
@@ -44,4 +45,7 @@ Check if OneFrame is accepting calls
 curl -H "token: 10dc303535874aeccc86a8251e6992f5" 'localhost:8080/rates?pair=USDJPY'
 ```
 If not, check the docker container is running, try restarting it in case number of requests to OneFrame service might have exceeded the 1000 limit
+
+## Improvements
+See `TODO`s in the source code
 
