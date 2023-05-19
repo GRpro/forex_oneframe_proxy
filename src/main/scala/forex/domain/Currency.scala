@@ -42,20 +42,12 @@ object Currency {
     case _ => None
   }
 
+  lazy val allCurrencies: List[Currency] = List(AUD, CAD, CHF, EUR, GBP, NZD, JPY, SGD, USD)
+
   lazy val allExchangePairs: List[Pair] = {
-    val allCurrencies = List(AUD, CAD, CHF, EUR, GBP, NZD, JPY, SGD, USD)
     for {
       currency1 <- allCurrencies
       currency2 <- allCurrencies
     } yield Pair(currency1, currency2)
-  }
-
-  val allCurrencies = List(AUD, CAD, CHF, EUR, GBP, NZD, JPY, SGD, USD)
-  val combinations: List[(Currency, Currency)] = {
-    allCurrencies
-      .combinations(2)
-      .flatMap(_.permutations)
-      .collect { case Seq(from: Currency, to: Currency) => (from, to) }
-      .toList
   }
 }

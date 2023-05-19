@@ -9,15 +9,15 @@ This repository is an implementation of `Forex` service. It's API provides an HT
 
 There are 3 functional requirements:
 1. The service returns an exchange rate when provided with 2 supported currencies
-   - Assumed the following list of currencies is supported `AUD, CAD, CHF, EUR, GBP, NZD, JPY, SGD, USD`
+   - Assumed the following list of currencies is supported `AUD, CAD, CHF, EUR, GBP, NZD, JPY, SGD, USD`.
 
 2. The service should support at least 10,000 successful requests per day with 1 API token
-   - The service supports any number of requests per day for a single configured `OneFrame` API token by utilizing a cache
+   - The service supports any number of requests per day for a single configured `OneFrame` API token by utilizing a cache.
 
 3. The rate should not be older than 5 minutes
-   - `OneFrame` supports only 1000 requests per day meaning no more than 1000 / 24 =~ 42 requests per hour, which means a delay of at least 3600 / 42 ~= 86 seconds between requests on average
+   - `OneFrame` supports only 1000 requests per day meaning no more than 1000 / 24 =~ 42 requests per hour, which means a delay of at least 3600 / 42 ~= 86 seconds between requests on average.
       To support this requirement I need to update the cache every 300 seconds which is acceptable by the API SLA.
-      The setting `app.cache.update-interval` in `application.conf` should be in range `[86, 300] seconds`
+      The setting `app.cache.update-interval` in `application.conf` should be in range `[86, 300] seconds`.
 
 ## Service setup and execute request
 
@@ -35,7 +35,7 @@ There are 3 functional requirements:
    
 3. Example request
    ```bash
-   curl -v 'localhost:8082/rates?from=USD&to=JPY'
+   curl 'localhost:8082/rates?from=USD&to=JPY'
    ```
 
 ## Troubleshooting

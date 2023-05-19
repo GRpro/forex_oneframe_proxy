@@ -1,10 +1,11 @@
-package forex.services.rates.interpreters
+package forex.services.oneframe.interpreters
 import forex.domain.Rate.Pair
 import forex.domain._
 import io.circe.generic.extras.Configuration
 import io.circe.generic.extras.semiauto.deriveConfiguredDecoder
 import io.circe.{ Decoder, DecodingFailure, HCursor }
 import forex.http._
+
 object Protocol {
 
   implicit val configuration: Configuration = Configuration.default.withSnakeCaseMemberNames

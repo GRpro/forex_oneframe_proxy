@@ -1,4 +1,4 @@
-package forex.services.rates
+package forex.services.oneframe
 
 object errors {
 

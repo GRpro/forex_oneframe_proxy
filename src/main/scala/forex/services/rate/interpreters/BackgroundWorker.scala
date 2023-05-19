@@ -1,45 +1,49 @@
 package forex.services.rate.interpreters
 
-import cats.effect.{Concurrent, Fiber, Timer}
+import cats.effect.{ Concurrent, Fiber, Timer }
 import cats.implicits._
 import com.typesafe.scalalogging.LazyLogging
 
 import scala.concurrent.duration._
-import forex.domain.{Currency, Rate}
-import forex.services.rates.{Algebra => RatesAlgebra}
+import forex.domain.{ Currency, Rate }
+import forex.services.oneframe.{ Algebra => RatesAlgebra }
 
-import java.time.OffsetDateTime
 class BackgroundWorker[F[_]: Concurrent: Timer](rates: RatesAlgebra[F],
                                                 cache: RatesCache[F],
-                                                updateInterval: FiniteDuration) extends LazyLogging {
+                                                updateInterval: FiniteDuration)
+    extends LazyLogging {
 
-  def runFiber: F[Fiber[F, Unit]] =
+  def start: F[Fiber[F, Unit]] =
     Concurrent[F].start(loop.foreverM.void)
 
-  private def loop: F[Unit] =
+  private[this] def loop: F[Unit] =
     for {
-      // TODO maybe add retries
+      // TODO Add retries for "retriable errors" like network issues.
+      //      Optionally, think of a way to suspend calls to OneFrame API when no one is using service
+      //      for a configured period, and resume the loop when next request comes in case the loop is suspended.
+      //      This should be a good trade-off between client request SLA and decreasing idle usage of OneFrame API
       _ <- tryUpdateCache
       _ <- Timer[F].sleep(updateInterval)
     } yield ()
 
-  private def tryUpdateCache: F[Unit] =
+  private[this] def tryUpdateCache: F[Unit] = {
+    logger.info("Attempt to update cache")
     rates
       .get(Currency.allExchangePairs)
       .flatMap {
-          case Right(response) =>
-            val rates = response.rates.map { rate =>
-              val pair = Rate.Pair(rate.from, rate.to)
-              pair -> Rate(pair, rate.price, rate.timeStamp)
-            }.toMap
-            val updateTime = OffsetDateTime.now()
-            cache.updateAll(rates, updateTime).map { _ =>
-              logger.info(s"Cache updated with ${rates.size} pairs")
-            }
+        case Right(response) =>
+          val rates = response.rates.map { rate =>
+            val pair = Rate.Pair(rate.from, rate.to)
+            pair -> Rate(pair, rate.price, rate.timeStamp)
+          }.toMap
 
-          case Left(error) =>
-            logger.info(s"Failed to update cache $error")
-            Concurrent[F].unit
+          for {
+            _ <- cache.updateAll(rates)
+          } yield logger.info(s"Cache updated with ${rates.size} pairs")
+        case Left(error) =>
+          logger.info(s"Failed to update cache $error")
+          Concurrent[F].unit
       }
+  }
 
 }

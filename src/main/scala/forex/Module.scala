@@ -5,7 +5,6 @@ import forex.config.ApplicationConfig
 import forex.http.rates.RatesHttpRoutes
 import forex.services._
 import forex.programs._
-import forex.services.rate.interpreters.{BackgroundWorker, ConcurrentRatesCache, RatesCache}
 import forex.services.rate.{RateService, RateServices}
 import org.http4s._
 import org.http4s.implicits._
@@ -13,13 +12,9 @@ import org.http4s.server.middleware.{AutoSlash, Timeout}
 
 class Module[F[_]: ConcurrentEffect : Timer](config: ApplicationConfig) {
 
-  private val ratesCache: RatesCache[F] = new ConcurrentRatesCache[F]
-
   private val ratesService: RatesService[F] = RatesServices.live[F](config.oneFrameClient)
 
-  val worker: BackgroundWorker[F] = new BackgroundWorker[F](ratesService, ratesCache, config.cache.updateInterval)
-
-  private val rateService: RateService[F] = RateServices.live[F](ratesCache, config.cache)
+  val rateService: RateService[F] = RateServices.live[F](ratesService, config.cache)
 
   private val ratesProgram: RatesProgram[F] = RatesProgram[F](rateService)
 

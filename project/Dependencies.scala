@@ -47,6 +47,8 @@ object Dependencies {
     lazy val scalaTest           = "org.scalatest"         %% "scalatest"                  % Versions.scalaTest
     lazy val scalaCheck          = "org.scalacheck"        %% "scalacheck"                 % Versions.scalaCheck
     lazy val catsScalaCheck      = "io.chrisdavenport"     %% "cats-scalacheck"            % Versions.catsScalaCheck
+    lazy val catsEffectTestingScalatest   = "com.codecommit"         %% "cats-effect-testing-scalatest" % "0.5.0"
+    lazy val easyMock = "org.scalatestplus" %% "easymock-5-1" % "3.2.16.0"
   }
 
 }
