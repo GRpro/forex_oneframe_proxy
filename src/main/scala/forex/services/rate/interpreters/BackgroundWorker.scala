@@ -6,6 +6,7 @@ import com.typesafe.scalalogging.LazyLogging
 
 import scala.concurrent.duration._
 import forex.domain.{ Currency, Rate }
+import forex.services.oneframe.interpreters.Protocol.OneFrameApiResponse
 import forex.services.oneframe.{ Algebra => RatesAlgebra }
 
 class BackgroundWorker[F[_]: Concurrent: Timer](rates: RatesAlgebra[F],
@@ -26,25 +27,29 @@ class BackgroundWorker[F[_]: Concurrent: Timer](rates: RatesAlgebra[F],
       _ <- Timer[F].sleep(updateInterval)
     } yield ()
 
-  private[this] def tryUpdateCache: F[Unit] = {
-    logger.info("Attempt to update cache")
+  private[this] def tryUpdateCache: F[Unit] =
     // TODO if the list of currencies grow, update in multiple requests
-    rates
-      .get(Currency.allExchangePairs)
-      .flatMap {
-        case Right(response) =>
-          val rates = response.rates.map { rate =>
-            val pair = Rate.Pair(rate.from, rate.to)
-            pair -> Rate(pair, rate.price, rate.timeStamp)
-          }.toMap
+    for {
+      _ <- logger.info("Attempt to update cache").pure[F]
+      response <- rates.get(Currency.allExchangePairs)
+      result <- response match {
+                 case Right(response) =>
+                   updateCache(response)
+                 case Left(error) =>
+                   logger.info(s"Failed to update cache $error").pure[F]
+               }
+    } yield result
 
-          for {
-            _ <- cache.updateAll(rates)
-          } yield logger.info(s"Cache updated with ${rates.size} pairs")
-        case Left(error) =>
-          logger.info(s"Failed to update cache $error")
-          Concurrent[F].unit
-      }
-  }
-
+  private[this] def updateCache(response: OneFrameApiResponse): F[Unit] =
+    for {
+      rates <- response.rates
+                .map { rate =>
+                  val pair = Rate.Pair(rate.from, rate.to)
+                  pair -> Rate(pair, rate.price, rate.timeStamp)
+                }
+                .toMap
+                .pure[F]
+      _ <- cache.updateAll(rates)
+      _ <- logger.info(s"Cache updated with ${rates.size} pairs").pure[F]
+    } yield ()
 }

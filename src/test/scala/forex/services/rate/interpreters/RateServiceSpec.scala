@@ -10,6 +10,7 @@ import forex.domain.{ Price, Rate, Timestamp }
 import forex.services.oneframe.interpreters.Protocol.OneFrameApiResponse
 import forex.services.oneframe.Algebra
 import forex.services.oneframe.errors._
+import forex.services.oneframe.errors.Error.OneFrameLookupFailed
 import forex.services.rate
 import forex.services.oneframe.interpreters.Protocol.OneFrameRate
 import org.scalatest.freespec.AsyncFreeSpec
@@ -47,6 +48,13 @@ class RateServiceSpec extends AsyncFreeSpec with AsyncIOSpec with EasyMockSugar 
                 )
               )
             ).asRight[Error]
+          )
+        )
+        .once()
+      expect(ratesService.get(anyObject[List[Rate.Pair]]))
+        .andReturn(
+          IO.pure(
+            OneFrameLookupFailed("Error").asLeft[OneFrameApiResponse]
           )
         )
         .once()
